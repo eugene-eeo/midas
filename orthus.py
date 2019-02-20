@@ -1,10 +1,9 @@
-#!/usr/bin/env python
 import sys
 from functools import partial
 from itertools import islice
 from threading import Thread
 from queue import Queue, Empty
-from evdev import InputDevice, ecodes
+from evdev import InputDevice, ecodes, list_devices
 
 
 def guess_direction(X, chunk_size=4):
@@ -53,7 +52,7 @@ def timed(q):
         except Empty:
             evt = guess_event(buffer)
             if evt is not None:
-                print(evt)
+                print(evt, flush=True)
             buffer.clear()
 
 
@@ -77,4 +76,14 @@ def main(device_path):
 
 
 if __name__ == '__main__':
-    main(sys.argv[1])
+    devices = [InputDevice(path) for path in list_devices()]
+    if sys.argv[1] == "list":
+        for device in devices:
+            print(device.path, device.name)
+    elif not sys.argv[1].startswith('/'):
+        for device in devices:
+            if device.name == sys.argv[1]:
+                main(device.path)
+                break
+    else:
+        main(sys.argv[1])
