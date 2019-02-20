@@ -1,21 +1,30 @@
 # orthus
 
-Simple utility to recognise touchpad gestures, and log them to
-stdout. Install + Usage:
+Simple utility to recognise touchpad gestures, and log them to stdout.
+
+### Install
 
 ```sh
 $ pip install evdev
+```
 
+### Usage
+
+If you use pyenv, orthus automatically detects that and runs `sudo ...`
+with the correct python path.
+
+```
 # list devices
-$ sudo python orthus.py list
-...
+$ ./orthus list
 
 # by path
-$ sudo python orthus.py /dev/input/event12
+$ ./orthus /dev/input/event12
 
 # by name
-$ sudo python orthus.py 'DELL07E6:00 06CB:76AF Touchpad'
+$ ./orthus 'DELL07E6:00 06CB:76AF Touchpad'
 
 # to dispatch
-$ sudo python orthus.py ... | ./dispatch.sh
+$ ./orthus ... | ./dispatch.sh
 ```
+
+See `dispatch.sh` for an example of what could be done.
