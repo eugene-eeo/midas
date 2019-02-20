@@ -2,8 +2,8 @@
 
 Simple utility to recognise touchpad gestures, and logs them to stdout.
 Needs sudo. The proper way to run it is probably to add a user to the
-`input` group so it can read events from `/dev/input`, and then modify
-the `midas` script accordingly.
+`input` group so it can read events from `/dev/input`, and run it as
+that user instead.
 
 ### Install
 

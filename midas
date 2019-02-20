@@ -1,6 +1,15 @@
 #!/bin/bash
+
+# find out if user belongs in the input group
+sudo="sudo"
+if groups "$(whoami)" | grep &>/dev/null '\binput\b'; then
+    sudo=''
+fi
+
+# find out the python interpreter to use
 python_path=$(which python)
 if type pyenv > /dev/null; then
     python_path=$(pyenv which python)
 fi
-sudo "$python_path" ./midas.py "$1"
+
+$sudo "$python_path" ./midas.py "$1"
