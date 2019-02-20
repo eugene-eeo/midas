@@ -3,4 +3,5 @@ python_path=$(which python)
 if hash pyenv; then
     python_path=$(pyenv which python)
 fi
-sudo "$python_path" ./orthus.py $@
+echo $python_path
+sudo "$python_path" ./orthus.py "$1"
