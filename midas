@@ -1,7 +1,6 @@
 #!/bin/bash
 python_path=$(which python)
-if hash pyenv; then
+if type pyenv > /dev/null; then
     python_path=$(pyenv which python)
 fi
-echo $python_path
 sudo "$python_path" ./midas.py "$1"
