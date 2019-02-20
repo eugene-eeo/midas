@@ -1,6 +1,9 @@
 # midas
 
-Simple utility to recognise touchpad gestures, and log them to stdout.
+Simple utility to recognise touchpad gestures, and logs them to stdout.
+Needs sudo. The proper way to run it is probably to add a user to the
+`input` group so it can read events from `/dev/input`, and then modify
+the `midas` script accordingly.
 
 ### Install
 
@@ -27,7 +30,9 @@ $ ./midas 'DELL07E6:00 06CB:76AF Touchpad'
 $ ./midas ... | ./dispatch.sh
 ```
 
-See `dispatch.sh` for an example of what could be done.
+See `dispatch.sh` for an example of what could be done. The events recognised
+are `{3,4}.{up,down,left,right}`, and represent triple/quad swipes in the four
+main directions.
 
 ### Algorithm
 

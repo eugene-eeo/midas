@@ -1,6 +1,5 @@
 import sys
 from functools import partial
-from itertools import islice
 from threading import Thread
 from queue import Queue, Empty
 from evdev import InputDevice, ecodes, list_devices
