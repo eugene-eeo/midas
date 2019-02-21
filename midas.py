@@ -1,7 +1,7 @@
 import sys
 from functools import partial
 from threading import Thread
-from queue import Queue, Empty
+from queue import Queue, Empty, Full
 from evdev import InputDevice, ecodes, list_devices
 
 
@@ -67,11 +67,14 @@ def main(device_path):
         type  = event.type
         code  = event.code
         value = event.value
-        if type == ecodes.EV_ABS:
-            if code == ecodes.ABS_Y:   q.put((0, value))
-            elif code == ecodes.ABS_X: q.put((1, value))
-        elif type == ecodes.EV_KEY and code in taps:
-            q.put((2, code))
+        try:
+            if type == ecodes.EV_ABS:
+                if code == ecodes.ABS_Y:   q.put_nowait((0, value))
+                elif code == ecodes.ABS_X: q.put_nowait((1, value))
+            elif type == ecodes.EV_KEY and code in taps:
+                q.put_nowait((2, code))
+        except Full:
+            pass
 
 
 if __name__ == '__main__':
