@@ -57,7 +57,7 @@ def timed(q):
 
 def main(device_path):
     dev = InputDevice(device_path)
-    q = Queue()
+    q = Queue(maxsize=50)
 
     Thread(target=partial(timed, q)).start()
     taps = (ecodes.BTN_TOOL_TRIPLETAP,
