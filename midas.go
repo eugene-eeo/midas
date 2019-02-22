@@ -3,6 +3,7 @@ package main
 import "os"
 import "fmt"
 import "time"
+import "github.com/desertbit/timer"
 import "github.com/gvalkov/golang-evdev"
 
 func gatherEvents(device *evdev.InputDevice) chan *evdev.InputEvent {
@@ -90,27 +91,23 @@ func guess_event(min_x, min_y, max_x, max_y int32, dx, dy int, c_max uint16) (ev
 
 func watch(device *evdev.InputDevice) {
 	events := gatherEvents(device)
-	i := 0
-	j := 0
-	dx := 0
-	dy := 0
 	diff := 0
-	min_y := int32(0)
-	min_x := int32(0)
-	max_y := int32(0)
-	max_x := int32(0)
+	i, j := 0, 0
+	dy, dx := 0, 0
+	min_y, max_y := int32(0), int32(0)
+	min_x, max_x := int32(0), int32(0)
 	x_buf := [4]int32{}
 	y_buf := [4]int32{}
 	c_max := uint16(0)
-	t := time.NewTimer(100 * time.Millisecond)
+	duration := 100 * time.Millisecond
+	t := timer.NewTimer(duration)
 	for {
 		select {
 		case ev := <-events:
 			if ev == nil {
 				break
 			}
-			t.Stop()
-			t = time.NewTimer(100 * time.Millisecond)
+			t.Reset(duration)
 			switch ev.Type {
 			case evdev.EV_ABS:
 				switch ev.Code {
@@ -135,14 +132,10 @@ func watch(device *evdev.InputDevice) {
 			if ok {
 				fmt.Println(event)
 			}
-			dx = 0
-			dy = 0
-			i = 0
-			j = 0
-			max_x = 0
-			max_y = 0
-			min_x = 0
-			min_y = 0
+			i, j = 0, 0
+			dx, dy = 0, 0
+			min_y, max_y = 0, 0
+			min_x, max_x = 0, 0
 			c_max = 0
 		}
 	}

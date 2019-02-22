@@ -8,6 +8,7 @@ that user instead.
 ### Install
 
 ```sh
+$ go get github.com/desertbit/timer
 $ go get github.com/gvalkov/golang-evdev
 $ go build
 ```
