@@ -8,14 +8,14 @@ from evdev import InputDevice, ecodes, list_devices
 def guess_direction(X, chunk_size=4):
     dir = 0
     for i in range(len(X) - chunk_size):
-        seen_lt = False
-        seen_gt = False
+        lt = True
+        gt = True
         for j in range(chunk_size - 1):
             a = X[i+j]
             b = X[i+j+1]
-            seen_lt |= b < a
-            seen_gt |= b > a
-        dir += seen_gt - seen_lt
+            lt &= b < a
+            gt &= b > a
+        dir += gt - lt
     return dir
 
 
@@ -24,16 +24,15 @@ def guess_event(data):
         return
     y_data = []
     x_data = []
-    c_data = []
+    c = 0
     for t, y in data:
         if   t == 0: y_data.append(y)
         elif t == 1: x_data.append(y)
-        else:        c_data.append(y)
-    if not c_data:
+        else:        c = max(c, y)
+    if c == 0:
         return
     dy = guess_direction(y_data)
     dx = guess_direction(x_data)
-    c = max(c_data)
     # find out main direction change
     if abs(dx) > abs(dy):
         dir_name = "left" if dx < 0 else "right"
