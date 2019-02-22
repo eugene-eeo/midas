@@ -87,12 +87,14 @@ func watch(device *evdev.InputDevice) {
 	x_buf := [4]int32{}
 	y_buf := [4]int32{}
 	c_max := uint16(0)
+	t := time.NewTimer(100 * time.Millisecond)
 	for {
 		select {
 		case ev := <-events:
 			if ev == nil {
 				break
 			}
+			t = time.NewTimer(100 * time.Millisecond)
 			switch ev.Type {
 			case evdev.EV_ABS:
 				switch ev.Code {
@@ -110,7 +112,7 @@ func watch(device *evdev.InputDevice) {
 					}
 				}
 			}
-		case <-time.After(100 * time.Millisecond):
+		case <-t.C:
 			// do some processing
 			event, ok := guess_event(dx, dy, c_max)
 			if ok {
