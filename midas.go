@@ -21,6 +21,16 @@ func gatherEvents(device *evdev.InputDevice) chan *evdev.InputEvent {
 	return sink
 }
 
+func update_minmax(value int32, min, max int32) (int32, int32) {
+	if min == 0 || value < min {
+		min = value
+	}
+	if value > max {
+		max = value
+	}
+	return min, max
+}
+
 func update_buff(buff *[4]int32, value int32, i int) (int, int) {
 	if i < 4 {
 		buff[i] = value
@@ -59,15 +69,16 @@ func guess_event(min_x, min_y, max_x, max_y int32, dx, dy int, c_max uint16) (ev
 		ok = false
 		return
 	}
-	ok = true
 	is_x := abs(dx) > abs(dy)
-	if is_x && (max_x-min_x > 50) {
+	if is_x && max_x-min_x > 100 {
+		ok = true
 		if dx < 0 {
 			event += "left"
 		} else {
 			event += "right"
 		}
-	} else if !is_x && max_y-min_y > 50 {
+	} else if !is_x && max_y-min_y > 100 {
+		ok = true
 		if dy < 0 {
 			event += "up"
 		} else {
@@ -105,21 +116,11 @@ func watch(device *evdev.InputDevice) {
 				switch ev.Code {
 				case evdev.ABS_X:
 					ddx, i = update_buff(&x_buf, ev.Value, i)
-					if min_x > ev.Value || min_x == 0 {
-						min_x = ev.Value
-					}
-					if max_x < ev.Value {
-						max_x = ev.Value
-					}
+					min_x, max_x = update_minmax(ev.Value, min_x, max_x)
 					dx += ddx
 				case evdev.ABS_Y:
 					ddy, j = update_buff(&y_buf, ev.Value, j)
-					if min_y > ev.Value || min_y == 0 {
-						min_y = ev.Value
-					}
-					if max_y < ev.Value {
-						max_y = ev.Value
-					}
+					min_y, max_y = update_minmax(ev.Value, min_y, max_y)
 					dy += ddy
 				}
 			case evdev.EV_KEY:
@@ -139,6 +140,10 @@ func watch(device *evdev.InputDevice) {
 			dy = 0
 			i = 0
 			j = 0
+			max_x = 0
+			max_y = 0
+			min_x = 0
+			min_y = 0
 			c_max = 0
 		}
 	}
