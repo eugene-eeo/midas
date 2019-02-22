@@ -109,6 +109,7 @@ func watch(device *evdev.InputDevice) {
 			if ev == nil {
 				break
 			}
+			t.Stop()
 			t = time.NewTimer(100 * time.Millisecond)
 			switch ev.Type {
 			case evdev.EV_ABS:
@@ -130,7 +131,6 @@ func watch(device *evdev.InputDevice) {
 				}
 			}
 		case <-t.C:
-			// do some processing
 			event, ok := guess_event(min_x, min_y, max_x, max_y, dx, dy, c_max)
 			if ok {
 				fmt.Println(event)
@@ -149,7 +149,6 @@ func watch(device *evdev.InputDevice) {
 }
 
 func main() {
-	devices, _ := evdev.ListInputDevices()
 	if len(os.Args) == 1 {
 		fmt.Println(`usage:
 	midas list
@@ -158,16 +157,18 @@ func main() {
 		os.Exit(1)
 	}
 	if os.Args[1] == "list" {
+		devices, _ := evdev.ListInputDevices()
 		for _, device := range devices {
 			fmt.Println(device.File.Name(), device.Name)
 		}
 	} else if len(os.Args[1]) > 0 && os.Args[1][0] == '/' {
 		device, err := evdev.Open(os.Args[1])
 		if err != nil {
-			panic(err)
+			_, _ = fmt.Fprintf(os.Stderr, "midas: %e\n", err)
 		}
 		watch(device)
 	} else {
+		devices, _ := evdev.ListInputDevices()
 		for _, device := range devices {
 			if device.Name == os.Args[1] {
 				watch(device)
