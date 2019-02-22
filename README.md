@@ -8,26 +8,24 @@ that user instead.
 ### Install
 
 ```sh
-$ pip install evdev
+$ go get github.com/gvalkov/golang-evdev
+$ go build
 ```
 
 ### Usage
 
-If you use pyenv, midas automatically detects that and runs `sudo ...`
-with the correct python path.
-
 ```sh
 # list devices
-$ ./midas list
+$ sudo ./midas list
 
 # by path
-$ ./midas /dev/input/event12
+$ sudo ./midas /dev/input/event12
 
 # by name
-$ ./midas 'DELL07E6:00 06CB:76AF Touchpad'
+$ sudo ./midas 'DELL07E6:00 06CB:76AF Touchpad'
 
 # to dispatch
-$ ./midas ... | ./dispatch.sh
+$ sudo ./midas ... | ./dispatch.sh
 ```
 
 See `dispatch.sh` for an example of what could be done. The events recognised
