@@ -49,7 +49,7 @@ func abs(i int) int {
 	return i
 }
 
-func guess_event(dx, dy int, c_max uint16) (event string, ok bool) {
+func guess_event(min_x, min_y, max_x, max_y int32, dx, dy int, c_max uint16) (event string, ok bool) {
 	switch c_max {
 	case evdev.BTN_TOOL_QUADTAP:
 		event = "4."
@@ -60,13 +60,14 @@ func guess_event(dx, dy int, c_max uint16) (event string, ok bool) {
 		return
 	}
 	ok = true
-	if abs(dx) > abs(dy) {
+	is_x := abs(dx) > abs(dy)
+	if is_x && (max_x-min_x > 50) {
 		if dx < 0 {
 			event += "left"
 		} else {
 			event += "right"
 		}
-	} else {
+	} else if !is_x && max_y-min_y > 50 {
 		if dy < 0 {
 			event += "up"
 		} else {
@@ -84,6 +85,10 @@ func watch(device *evdev.InputDevice) {
 	ddy := 0
 	dx := 0
 	dy := 0
+	min_y := int32(0)
+	min_x := int32(0)
+	max_y := int32(0)
+	max_x := int32(0)
 	x_buf := [4]int32{}
 	y_buf := [4]int32{}
 	c_max := uint16(0)
@@ -100,9 +105,21 @@ func watch(device *evdev.InputDevice) {
 				switch ev.Code {
 				case evdev.ABS_X:
 					ddx, i = update_buff(&x_buf, ev.Value, i)
+					if min_x > ev.Value || min_x == 0 {
+						min_x = ev.Value
+					}
+					if max_x < ev.Value {
+						max_x = ev.Value
+					}
 					dx += ddx
 				case evdev.ABS_Y:
 					ddy, j = update_buff(&y_buf, ev.Value, j)
+					if min_y > ev.Value || min_y == 0 {
+						min_y = ev.Value
+					}
+					if max_y < ev.Value {
+						max_y = ev.Value
+					}
 					dy += ddy
 				}
 			case evdev.EV_KEY:
@@ -114,7 +131,7 @@ func watch(device *evdev.InputDevice) {
 			}
 		case <-t.C:
 			// do some processing
-			event, ok := guess_event(dx, dy, c_max)
+			event, ok := guess_event(min_x, min_y, max_x, max_y, dx, dy, c_max)
 			if ok {
 				fmt.Println(event)
 			}
