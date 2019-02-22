@@ -41,11 +41,11 @@ func update_buff(buff *[4]int32, value int32, i int) (int, int) {
 	buff[1] = buff[2]
 	buff[2] = buff[3]
 	buff[3] = value
-	lt := buff[1] <= buff[0] && buff[2] <= buff[1] && buff[3] <= buff[2]
-	gt := buff[1] >= buff[0] && buff[2] >= buff[1] && buff[3] >= buff[2]
-	if gt && !lt {
+	asc := buff[0] <= buff[1] && buff[1] <= buff[2] && buff[2] <= buff[3]
+	dsc := buff[0] >= buff[1] && buff[1] >= buff[2] && buff[2] >= buff[3]
+	if asc && !dsc {
 		return +1, i
-	} else if !gt && lt {
+	} else if !asc && dsc {
 		return -1, i
 	} else {
 		return 0, i
@@ -92,10 +92,9 @@ func watch(device *evdev.InputDevice) {
 	events := gatherEvents(device)
 	i := 0
 	j := 0
-	ddx := 0
-	ddy := 0
 	dx := 0
 	dy := 0
+	diff := 0
 	min_y := int32(0)
 	min_x := int32(0)
 	max_y := int32(0)
@@ -115,13 +114,13 @@ func watch(device *evdev.InputDevice) {
 			case evdev.EV_ABS:
 				switch ev.Code {
 				case evdev.ABS_X:
-					ddx, i = update_buff(&x_buf, ev.Value, i)
+					diff, i = update_buff(&x_buf, ev.Value, i)
 					min_x, max_x = update_minmax(ev.Value, min_x, max_x)
-					dx += ddx
+					dx += diff
 				case evdev.ABS_Y:
-					ddy, j = update_buff(&y_buf, ev.Value, j)
+					diff, j = update_buff(&y_buf, ev.Value, j)
 					min_y, max_y = update_minmax(ev.Value, min_y, max_y)
-					dy += ddy
+					dy += diff
 				}
 			case evdev.EV_KEY:
 				if ev.Code == evdev.BTN_TOOL_QUADTAP || ev.Code == evdev.BTN_TOOL_TRIPLETAP {
