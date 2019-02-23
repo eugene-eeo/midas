@@ -23,7 +23,8 @@ func gatherEvents(device *evdev.InputDevice) chan *evdev.InputEvent {
 }
 
 func update_minmax(value int32, min, max int32) (int32, int32) {
-	if min == 0 || value < min {
+	// min starts off at -1
+	if min == -1 || value < min {
 		min = value
 	}
 	if value > max {
@@ -60,7 +61,7 @@ func abs(i int) int {
 	return i
 }
 
-func guess_event(min_x, min_y, max_x, max_y int32, dx, dy int, c_max uint16) (event string, ok bool) {
+func get_gesture_name(min_x, min_y, max_x, max_y int32, dir_x, dir_y int, c_max uint16) (event string, ok bool) {
 	switch c_max {
 	case evdev.BTN_TOOL_QUADTAP:
 		event = "4."
@@ -70,17 +71,18 @@ func guess_event(min_x, min_y, max_x, max_y int32, dx, dy int, c_max uint16) (ev
 		ok = false
 		return
 	}
-	is_x := abs(dx) > abs(dy)
-	if is_x && max_x-min_x > 100 {
+	abs_x := abs(dir_x)
+	abs_y := abs(dir_y)
+	if abs_x > abs_y && max_x-min_x > 100 {
 		ok = true
-		if dx < 0 {
+		if dir_x < 0 {
 			event += "left"
 		} else {
 			event += "right"
 		}
-	} else if !is_x && max_y-min_y > 100 {
+	} else if abs_y > abs_x && max_y-min_y > 100 {
 		ok = true
-		if dy < 0 {
+		if dir_y < 0 {
 			event += "up"
 		} else {
 			event += "down"
@@ -93,9 +95,9 @@ func watch(device *evdev.InputDevice) {
 	events := gatherEvents(device)
 	diff := 0
 	i, j := 0, 0
-	dy, dx := 0, 0
-	min_y, max_y := int32(0), int32(0)
-	min_x, max_x := int32(0), int32(0)
+	dir_y, dir_x := 0, 0
+	min_y, max_y := int32(-1), int32(0)
+	min_x, max_x := int32(-1), int32(0)
 	x_buf := [4]int32{}
 	y_buf := [4]int32{}
 	c_max := uint16(0)
@@ -114,11 +116,11 @@ func watch(device *evdev.InputDevice) {
 				case evdev.ABS_X:
 					diff, i = update_buff(&x_buf, ev.Value, i)
 					min_x, max_x = update_minmax(ev.Value, min_x, max_x)
-					dx += diff
+					dir_x += diff
 				case evdev.ABS_Y:
 					diff, j = update_buff(&y_buf, ev.Value, j)
 					min_y, max_y = update_minmax(ev.Value, min_y, max_y)
-					dy += diff
+					dir_y += diff
 				}
 			case evdev.EV_KEY:
 				if ev.Code == evdev.BTN_TOOL_QUADTAP || ev.Code == evdev.BTN_TOOL_TRIPLETAP {
@@ -128,14 +130,14 @@ func watch(device *evdev.InputDevice) {
 				}
 			}
 		case <-t.C:
-			event, ok := guess_event(min_x, min_y, max_x, max_y, dx, dy, c_max)
+			event, ok := get_gesture_name(min_x, min_y, max_x, max_y, dir_x, dir_y, c_max)
 			if ok {
 				fmt.Println(event)
 			}
 			i, j = 0, 0
-			dx, dy = 0, 0
-			min_y, max_y = 0, 0
-			min_x, max_x = 0, 0
+			dir_x, dir_y = 0, 0
+			min_y, max_y = -1, 0
+			min_x, max_x = -1, 0
 			c_max = 0
 		}
 	}
