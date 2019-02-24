@@ -22,17 +22,6 @@ func gatherEvents(device *evdev.InputDevice) chan *evdev.InputEvent {
 	return sink
 }
 
-func update_minmax(value int32, min, max int32) (int32, int32) {
-	// min starts off at -1
-	if min == -1 || value < min {
-		min = value
-	}
-	if value > max {
-		max = value
-	}
-	return min, max
-}
-
 func update_buff(buff *[4]int32, value int32, i int) (int, int) {
 	if i < 4 {
 		buff[i] = value
@@ -61,7 +50,7 @@ func abs(i int) int {
 	return i
 }
 
-func get_gesture_name(min_x, min_y, max_x, max_y int32, dir_x, dir_y int, c_max uint16) (event string, ok bool) {
+func get_gesture_name(dir_x, dir_y int, c_max uint16) (event string, ok bool) {
 	switch c_max {
 	case evdev.BTN_TOOL_QUADTAP:
 		event = "4."
@@ -73,14 +62,14 @@ func get_gesture_name(min_x, min_y, max_x, max_y int32, dir_x, dir_y int, c_max 
 	}
 	abs_x := abs(dir_x)
 	abs_y := abs(dir_y)
-	if abs_x > abs_y && max_x-min_x > 100 {
+	if abs_x > abs_y && abs_x >= 15 {
 		ok = true
 		if dir_x < 0 {
 			event += "left"
 		} else {
 			event += "right"
 		}
-	} else if abs_y > abs_x && max_y-min_y > 100 {
+	} else if abs_y > abs_x && abs_y >= 10 {
 		ok = true
 		if dir_y < 0 {
 			event += "up"
@@ -96,8 +85,6 @@ func watch(device *evdev.InputDevice) {
 	diff := 0
 	i, j := 0, 0
 	dir_y, dir_x := 0, 0
-	min_y, max_y := int32(-1), int32(0)
-	min_x, max_x := int32(-1), int32(0)
 	x_buf := [4]int32{}
 	y_buf := [4]int32{}
 	c_max := uint16(0)
@@ -115,11 +102,9 @@ func watch(device *evdev.InputDevice) {
 				switch ev.Code {
 				case evdev.ABS_X:
 					diff, i = update_buff(&x_buf, ev.Value, i)
-					min_x, max_x = update_minmax(ev.Value, min_x, max_x)
 					dir_x += diff
 				case evdev.ABS_Y:
 					diff, j = update_buff(&y_buf, ev.Value, j)
-					min_y, max_y = update_minmax(ev.Value, min_y, max_y)
 					dir_y += diff
 				}
 			case evdev.EV_KEY:
@@ -130,14 +115,12 @@ func watch(device *evdev.InputDevice) {
 				}
 			}
 		case <-t.C:
-			event, ok := get_gesture_name(min_x, min_y, max_x, max_y, dir_x, dir_y, c_max)
+			event, ok := get_gesture_name(dir_x, dir_y, c_max)
 			if ok {
 				fmt.Println(event)
 			}
 			i, j = 0, 0
 			dir_x, dir_y = 0, 0
-			min_y, max_y = -1, 0
-			min_x, max_x = -1, 0
 			c_max = 0
 		}
 	}
