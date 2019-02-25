@@ -62,7 +62,7 @@ func get_gesture_name(dir_x, dir_y int, c_max uint16) (event string, ok bool) {
 	}
 	abs_x := abs(dir_x)
 	abs_y := abs(dir_y)
-	if abs_x > abs_y && abs_x >= 15 {
+	if abs_x > abs_y && abs_x >= 20 {
 		ok = true
 		if dir_x < 0 {
 			event += "left"
