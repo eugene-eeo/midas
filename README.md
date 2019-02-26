@@ -13,6 +13,16 @@ $ go get github.com/gvalkov/golang-evdev
 $ go build
 ```
 
+Alternatively if you really trust me:
+
+```sh
+$ cp midas midas.noroot
+$ sudo chown root.root midas.noroot
+$ sudo chmod 4755 midas.noroot
+```
+
+Now you can use `midas.noroot` in place of `sudo midas`.
+
 ### Usage
 
 ```sh
