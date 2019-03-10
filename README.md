@@ -10,18 +10,17 @@ that user instead.
 ```sh
 $ go get github.com/desertbit/timer
 $ go get github.com/gvalkov/golang-evdev
-$ go build
+$ go install .
 ```
 
 Alternatively if you really trust me:
 
 ```sh
-$ cp midas midas.noroot
-$ sudo chown root.root midas.noroot
-$ sudo chmod 4755 midas.noroot
+$ sudo chown root.root "$GOPATH/bin/midas"
+$ sudo chmod 4755 "$GOPATH/bin/midas"
 ```
 
-Now you can use `midas.noroot` in place of `sudo midas`.
+Now you don't have to use `sudo midas`.
 
 ### Usage
 
